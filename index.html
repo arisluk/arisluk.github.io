@@ -80,6 +80,13 @@
         white-space: nowrap;
       }
 
+      @media (max-width: 768px) {
+        #terminal-input {
+          pointer-events: none;
+          opacity: 0.7;
+        }
+      }
+
       @keyframes blinker {
         50% {
           opacity: 0;
@@ -140,6 +147,13 @@
       const ctx = canvas.getContext("2d");
       const controlButton = document.getElementById("controlButton");
       const terminalInput = document.getElementById("terminal-input");
+
+      function updateInputReadOnly() {
+        terminalInput.readOnly = window.innerWidth <= 768;
+      }
+
+      window.addEventListener("resize", updateInputReadOnly);
+      updateInputReadOnly();
 
       document.addEventListener("click", () => {
         terminalInput.focus();
