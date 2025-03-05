@@ -1,6 +1,217 @@
 <!DOCTYPE html>
-<html>
-<body>
-<p>Hello World</p>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aris Luk</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: monospace;
+      }
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      #controlButton {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        font-family: monospace;
+        cursor: pointer;
+        z-index: 1000;
+        background: transparent;
+        border: none;
+        color: white;
+      }
+      #controlButton.flash {
+        animation: flash 0.5s step-start;
+      }
+      #info {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        font-size: 14px;
+        gap: 10px;
+        top: 20%;
+        left: 7%;
+        color: white;
+        z-index: 1000;
+      }
+      #info a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .blink_me {
+        animation: blinker 1s step-start infinite;
+      }
+      #terminal {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px;
+        padding-top: 7px;
+        background: rgba(41, 41, 41, 0.8);
+        color: white;
+        font-family: monospace;
+        display: flex;
+        align-items: baseline;
+        z-index: 1000;
+      }
+      #terminal-input {
+        background: transparent;
+        border: none;
+        color: white;
+        font-family: monospace;
+        font-size: 14px;
+        flex: 1;
+        outline: none;
+        margin-left: 7px;
+      }
+      #terminal-prompt {
+        color: white;
+        font-family: monospace;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      @keyframes blinker {
+        50% {
+          opacity: 0;
+        }
+      }
+      @keyframes flash {
+        0% {
+          opacity: 1;
+        }
+        20% {
+          opacity: 0;
+        }
+        40% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+        80% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button id="controlButton">[*]</button>
+    <div id="info">
+      <div style="margin-bottom: 20px">
+        <span style="margin-right: -5px">Aris Luk</span>
+        <span class="blink_me">_</span>
+      </div>
+      <a href="https://github.com/arisluk" target="_blank">github</a>
+      <a href="https://www.linkedin.com/in/arisluk/" target="_blank">
+        linkedin
+      </a>
+      <a
+        href="https://drive.google.com/file/d/1_-xcXzSqX1PymJABp2x1UmyqsUqAdihX/view"
+        target="_blank"
+        >resume</a
+      >
+    </div>
+    <div id="terminal">
+      <span id="terminal-prompt">aris@tiktok $</span>
+      <input
+        type="text"
+        id="terminal-input"
+        autofocus
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </div>
+    <canvas id="asciiCanvas"></canvas>
+    <script>
+      const canvas = document.getElementById("asciiCanvas");
+      const ctx = canvas.getContext("2d");
+      const controlButton = document.getElementById("controlButton");
+      const terminalInput = document.getElementById("terminal-input");
+
+      document.addEventListener("click", () => {
+        terminalInput.focus();
+      });
+
+      terminalInput.addEventListener("keydown", (e) => {
+        if (e.key === "Tab") {
+          e.preventDefault();
+        }
+        if (e.key === "Enter") {
+          e.preventDefault();
+          terminalInput.value = "";
+        }
+      });
+
+      let isAnimating = false;
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const chars = ["*"];
+      const fontSize = 16;
+      const columns = Math.floor(canvas.width / fontSize);
+
+      const drops = Array(columns)
+        .fill()
+        .map(() => []);
+
+      function draw() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.font = `${fontSize}px monospace`;
+
+        if (isAnimating && Math.random() > 0.95) {
+          const randomColumn = Math.floor(Math.random() * columns);
+          drops[randomColumn].push(0);
+        }
+
+        for (let i = 0; i < drops.length; i++) {
+          for (let j = drops[i].length - 1; j >= 0; j--) {
+            const char = chars[Math.floor(Math.random() * chars.length)];
+            const x = i * fontSize;
+            const y = drops[i][j] * fontSize;
+
+            ctx.fillText(char, x, y);
+
+            drops[i][j] += 0.04 + Math.random() * 0.02;
+
+            if (y > canvas.height) {
+              drops[i].splice(j, 1);
+            }
+          }
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      function toggleAnimation() {
+        isAnimating = !isAnimating;
+        controlButton.classList.add("flash");
+        setTimeout(() => controlButton.classList.remove("flash"), 500);
+      }
+
+      controlButton.addEventListener("click", toggleAnimation);
+
+      function updateCanvasSize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      window.addEventListener("resize", updateCanvasSize);
+      requestAnimationFrame(draw);
+    </script>
+  </body>
 </html>
