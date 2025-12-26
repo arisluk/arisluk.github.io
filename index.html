@@ -46,8 +46,21 @@
         color: inherit;
         text-decoration: none;
       }
-      .blink_me {
-        animation: blinker 1s step-start infinite;
+      #terminal-history {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 33px;
+        padding: 0 10px 8px 10px;
+        color: gray;
+        font-family: monospace;
+        font-size: 14px;
+        line-height: 1.3;
+        white-space: pre;
+        overflow-y: clip;
+        max-height: 20vh;
+        background: transparent;
+        z-index: 500;
       }
       #terminal {
         position: fixed;
@@ -86,12 +99,7 @@
           opacity: 0.7;
         }
       }
-
-      @keyframes blinker {
-        50% {
-          opacity: 0;
-        }
-      }
+      
       @keyframes flash {
         0% {
           opacity: 1;
@@ -119,7 +127,6 @@
     <div id="info">
       <div style="margin-bottom: 20px">
         <span style="margin-right: -5px">Aris Luk</span>
-        <span class="blink_me">_</span>
       </div>
       <a href="https://github.com/arisluk" target="_blank">github</a>
       <a href="https://www.linkedin.com/in/arisluk/" target="_blank">
@@ -131,6 +138,7 @@
         >resume</a
       >
     </div>
+    <div id="terminal-history"></div>
     <div id="terminal">
       <span id="terminal-prompt">aris@tiktok $</span>
       <input
@@ -147,6 +155,22 @@
       const ctx = canvas.getContext("2d");
       const controlButton = document.getElementById("controlButton");
       const terminalInput = document.getElementById("terminal-input");
+      const terminalHistory = document.getElementById("terminal-history");
+      const terminalPrompt = document.getElementById("terminal-prompt");
+
+      const HISTORY_TTL_MS = 5000;
+      const HISTORY_MAX_LINES = 10;
+
+      function pruneHistory() {
+        while (terminalHistory.childElementCount > HISTORY_MAX_LINES) {
+          terminalHistory.firstElementChild?.remove();
+        }
+
+        while (terminalHistory.scrollHeight > terminalHistory.clientHeight) {
+          if (!terminalHistory.firstElementChild) break;
+          terminalHistory.firstElementChild.remove();
+        }
+      }
 
       function updateInputReadOnly() {
         terminalInput.readOnly = window.innerWidth <= 768;
@@ -165,6 +189,21 @@
         }
         if (e.key === "Enter") {
           e.preventDefault();
+          const entered = terminalInput.value;
+          if (entered.length > 0) {
+            const line = document.createElement("div");
+            const promptText = terminalPrompt?.textContent ?? "";
+            line.textContent = `${promptText} ${entered}`;
+            terminalHistory.appendChild(line);
+            terminalHistory.scrollTop = terminalHistory.scrollHeight;
+
+            setTimeout(() => {
+              if (line.isConnected) line.remove();
+            }, HISTORY_TTL_MS);
+
+            pruneHistory();
+            terminalHistory.scrollTop = terminalHistory.scrollHeight;
+          }
           terminalInput.value = "";
         }
       });
